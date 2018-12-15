@@ -5,7 +5,7 @@ function loadAllItems() {
     price: 18.00
   }, {
     id: 'ITEM0013',
-    name: '肉夹馍',
+    name: '肉夹馍', 
     price: 6.00
   }, {
     id: 'ITEM0022',
