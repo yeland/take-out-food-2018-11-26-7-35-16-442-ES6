@@ -10,9 +10,7 @@ let getItemsInfo = selectedItems => {
 let getItemsNumber = selectedItems => {
   return selectedItems.map(element => {
     let threeParts = element.split(" ");
-    let item = {};
-    [item.id, item.amount] = [threeParts[0], parseInt(threeParts[2])];
-    return item;
+    return { id: threeParts[0], amount: parseInt(threeParts[2]) };
   });
 }
 let getItemsPrice = items => {
@@ -45,28 +43,20 @@ let getPromotionPrice = itemsInfo => {
   return comparaPromotions(promotionCut, promotionHalf);
 }
 let computeCutPrice = (itemsInfo, type) => {
-  let promotionCut = {};
   let totalPrice = itemsInfo.reduce((preEle, ele) => preEle + ele.allPrice, 0);
   if (totalPrice >= 30) {
-    [totalPrice, promotionCut.type, promotionCut.savePrice] = [totalPrice - 6, type, 6];
-  } else {
-    promotionCut.type = null;
+    return { sumPrice: totalPrice - 6, type, savePrice: 6 };
   }
-  promotionCut.sumPrice = totalPrice;
-  return promotionCut;
+  return { type: null, sumPrice: totalPrice };
 }
 let computeHalfPrice = (itemsInfo, type, allHalfItems) => {
-  let promotionHalf = {};
   let totalPrice = itemsInfo.reduce((preEle, ele) => preEle + ele.allPrice, 0);
   let halfItems = getHalfItems(itemsInfo, allHalfItems);
   let promotionPrice = computeHalf(itemsInfo, allHalfItems);
-  if (halfItems != []) {
-    [promotionHalf.type, promotionHalf.halfItems] = [type, halfItems];
-    [promotionHalf.sumPrice, promotionHalf.savePrice] = [promotionPrice, totalPrice - promotionPrice];
-  } else {
-    [promotionHalf.type, promotionHalf.sumPrice] = [null, totalPrice];
+  if (halfItems.length) {
+    return { type, halfItems, sumPrice: promotionPrice, savePrice: totalPrice - promotionPrice };
   }
-  return promotionHalf;
+  return { type: null, sumPrice: totalPrice };
 }
 let getHalfItems = (itemsInfo, allHalfItems) => {
   let items = [];
@@ -81,24 +71,20 @@ let computeHalf = (itemsInfo, allHalfItems) => {
   return itemsInfo.reduce((preEle, ele) => {
     if (allHalfItems.includes(ele.id)) {
       return preEle + ele.allPrice / 2;
-    } else {
-      return preEle + ele.allPrice;
     }
+    return preEle + ele.allPrice;
   }, 0);
 }
 let comparaPromotions = (cut, half) => {
   if (cut.sumPrice > half.sumPrice) {
     return half;
-  } else {
-    return cut;
   }
+  return cut;
 }
 let printToString = (itemsInfo, promotion) => {
   return `============= 订餐明细 =============
-${itemsString(itemsInfo)}
------------------------------------
-${promotionString(promotion)}
-总计：${promotion.sumPrice}元
+${itemsString(itemsInfo)}-----------------------------------
+${promotionString(promotion)}总计：${promotion.sumPrice}元
 ===================================`;
 }
 let itemsString = (itemsInfo) => {
@@ -106,24 +92,17 @@ let itemsString = (itemsInfo) => {
   return stringGroup.reduce((preEle, ele) => preEle + ele + '\n', '');
 }
 let promotionString = (promotion) => {
-  if (promotion.type == null) {
+  if (!promotion.type) {
     return '';
   } else if (promotion.type == '指定菜品半价') {
-    return `使用优惠: 
-${promotion.type}(${halfToString(promotion.halfItems)})，省${promotion.savePrice}元
------------------------------------`;
+    return `使用优惠:
+${promotion.type}(${promotion.halfItems.join('，')})，省${promotion.savePrice}元
+-----------------------------------
+`;
   } else {
     return `使用优惠:
 ${promotion.type}，省${promotion.savePrice}元
------------------------------------`;
+-----------------------------------
+`;
   }
-}
-let halfToString = (halfItems) => {
-  return halfItems.reduce((preEle, ele, index, array) => {
-    if (index != array.length - 1) {
-      return preEle + ele + '，';
-    } else {
-      return preEle + ele;
-    }
-  }, '')
 }
